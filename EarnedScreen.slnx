@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EarnedScreen.App/EarnedScreen.App.csproj" />
+    <Project Path="src/EarnedScreen.Core/EarnedScreen.Core.csproj" />
+    <Project Path="src/EarnedScreen.Service/EarnedScreen.Service.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EarnedScreen.Tests/EarnedScreen.Tests.csproj" />
+  </Folder>
+</Solution>
