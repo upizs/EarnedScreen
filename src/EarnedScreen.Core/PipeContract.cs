@@ -30,6 +30,8 @@ public sealed class StatusResponse
     public int SessionMinutes { get; set; }
     public DateTime? SessionEndUtc { get; set; }
     public int RemainingSeconds { get; set; }
+    public bool DnsFilterActive { get; set; }
+    public string? DnsFilterName { get; set; }
 }
 
 public enum EventType

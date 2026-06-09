@@ -1,3 +1,4 @@
+using System.Net.NetworkInformation;
 using EarnedScreen.Core;
 
 namespace EarnedScreen.Service;
@@ -27,6 +28,9 @@ public class Worker : BackgroundService
         _engine.SessionEnded += OnSessionEnded;
         _engine.Initialize();
 
+        // Re-pin family-safe DNS whenever the network changes (e.g. a new adapter comes up).
+        NetworkChange.NetworkAddressChanged += OnNetworkChanged;
+
         var cmdTask = _command.RunAsync(stoppingToken);
         var evtTask = _events.RunAsync(stoppingToken);
 
@@ -45,10 +49,17 @@ public class Worker : BackgroundService
         finally
         {
             _engine.SessionEnded -= OnSessionEnded;
+            NetworkChange.NetworkAddressChanged -= OnNetworkChanged;
         }
 
         await Task.WhenAll(cmdTask, evtTask);
     }
 
     private void OnSessionEnded() => _events.Push(new EventMessage { Type = EventType.SessionEnded });
+
+    private void OnNetworkChanged(object? sender, EventArgs e)
+    {
+        try { _engine.ApplyDnsFilter(); }
+        catch (Exception ex) { _log.LogDebug(ex, "DNS re-apply on network change failed"); }
+    }
 }

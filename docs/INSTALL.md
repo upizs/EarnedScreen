@@ -136,8 +136,35 @@ Fields:
 | `GatewayChecklist` | Push-ups, sit-ups, squats, jumping jacks, chores | Pre-watch toll |
 | `CoolDownChecklist` | Push-ups, squats, water, stretch | Post-session recovery |
 | `Notion` | disabled | Optional Notion daily-tasks gateway (see below) |
+| `DnsFilter` | Family, enabled | Always-on family-safe DNS + network UI lock (see below) |
 
 **These are edited via Claude Code only.** See [CLAUDE.md](../CLAUDE.md).
+
+---
+
+## Family-safe DNS + network lock
+
+While the service runs, your active adapter's DNS is pinned to **CleanBrowsing Family**
+(`185.228.168.168` / `185.228.169.168`) and the Windows network-settings UI is hidden/locked so it
+can't be changed. There's **no off switch** — it's always on. `uninstall-service.ps1` fully reverts it
+(DNS back to automatic, network settings UI restored).
+
+Configure via the `DnsFilter` block in `settings.json`:
+```json
+"DnsFilter": {
+  "Enabled": true,
+  "Filter": "Family",
+  "Servers": ["185.228.168.168", "185.228.169.168"],
+  "ServersV6": ["2a0d:2a00:1::", "2a0d:2a00:2::"],
+  "LockNetworkUi": true
+}
+```
+- `Filter`: `Family` (default), `Adult`, `Security`, or `Custom` (then set `Servers` yourself).
+- Requires the browser DoH policy (set automatically) so browsers don't bypass the adapter DNS.
+
+> **Note:** locking the network pages also hides the Wi-Fi-connect UI. To connect to a new network,
+> run `uninstall-service.ps1`, connect, then reinstall — or set `"LockNetworkUi": false` to keep the
+> DNS pinned without hiding the pages.
 
 ---
 

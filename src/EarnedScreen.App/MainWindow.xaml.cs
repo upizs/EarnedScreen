@@ -126,6 +126,10 @@ public partial class MainWindow : Window
             StatusText.Text = $"🔒 Blocked — one {status.SessionMinutes}-minute session available.";
         }
 
+        DnsStatusText.Text = status.DnsFilterActive
+            ? $"🛡 Family-safe DNS: ON ({status.DnsFilterName})"
+            : "";
+
         _lastStatus = status;
         UpdateEarnButton();
     }

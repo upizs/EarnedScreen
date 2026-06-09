@@ -12,6 +12,8 @@ public sealed class EnforcementEngine
     private readonly object _lock = new();
     private readonly HostsFileManager _hosts = new();
     private readonly BrowserPolicyManager _browser = new();
+    private readonly DnsFilterManager _dns = new();
+    private readonly NetworkUiLockManager _netLock = new();
     private readonly SettingsStore _settingsStore = new();
     private readonly StateStore _stateStore = new();
     private readonly ILogger<EnforcementEngine> _log;
@@ -42,6 +44,9 @@ public sealed class EnforcementEngine
             // completely bypassing the OS hosts file and making block ineffective.
             _browser.DisableDoH();
             _log.LogInformation("Browser DoH disabled via policy registry.");
+
+            // Family-safe DNS: pin the adapter to CleanBrowsing and lock the network UI.
+            ApplyDnsFilter();
 
             var now = DateTime.UtcNow;
             if (_state.Status == BlockStatus.Unlocked && _state.SessionEndUtc is { } end && end > now)
@@ -114,6 +119,18 @@ public sealed class EnforcementEngine
         if (dropped) SessionEnded?.Invoke();
     }
 
+    /// <summary>Applies family-safe DNS + UI lock. Idempotent; called on startup and on network change.</summary>
+    public void ApplyDnsFilter()
+    {
+        lock (_lock)
+        {
+            if (!_settings.DnsFilter.Enabled) return;
+            _dns.Apply(_settings.DnsFilter);
+            if (_settings.DnsFilter.LockNetworkUi) _netLock.Lock();
+            _log.LogInformation("Family-safe DNS applied ({Filter}).", _settings.DnsFilter.Filter);
+        }
+    }
+
     private void EnterBlockedState()
     {
         _hosts.ApplyBlock(_settings.BlockedDomains);
@@ -139,6 +156,8 @@ public sealed class EnforcementEngine
             SessionMinutes = _settings.SessionMinutes,
             SessionEndUtc = _state.SessionEndUtc,
             RemainingSeconds = remaining,
+            DnsFilterActive = _settings.DnsFilter.Enabled,
+            DnsFilterName = _settings.DnsFilter.Filter,
         };
     }
 }

@@ -40,3 +40,30 @@ if (Test-Path $chromePath) { Remove-ItemProperty $chromePath -Name DnsOverHttpsM
 if (Test-Path $edgePath)   { Remove-ItemProperty $edgePath   -Name DnsOverHttpsMode -ErrorAction SilentlyContinue }
 if (Test-Path $ffPath)     { Remove-ItemProperty $ffPath     -Name Enabled           -ErrorAction SilentlyContinue }
 Write-Host "Done. Restart browsers for DoH settings to take effect."
+
+# Restore family-safe DNS: revert active adapters to automatic and unhide the network settings UI.
+Write-Host "Restoring DNS to automatic on active adapters..."
+$active = Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway -and $_.NetAdapter.Status -eq 'Up' }
+foreach ($cfg in $active) {
+    try { Set-DnsClientServerAddress -InterfaceIndex $cfg.InterfaceIndex -ResetServerAddresses -ErrorAction Stop }
+    catch { Write-Warning "Could not reset DNS on interface $($cfg.InterfaceIndex): $_" }
+}
+ipconfig /flushdns | Out-Null
+
+Write-Host "Unlocking network settings UI..."
+$explorerPolicy = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+if (Test-Path $explorerPolicy) { Remove-ItemProperty $explorerPolicy -Name 'SettingsPageVisibility' -ErrorAction SilentlyContinue }
+
+# Remove the NC_ LAN-properties locks from HKLM and every loaded real-user hive.
+$ncSub = 'Software\Policies\Microsoft\Windows\Network Connections'
+$ncRoots = @("HKLM:\$ncSub")
+Get-ChildItem 'Registry::HKEY_USERS' -ErrorAction SilentlyContinue |
+    Where-Object { $_.PSChildName -like 'S-1-5-21-*' -and $_.PSChildName -notlike '*_Classes' } |
+    ForEach-Object { $ncRoots += "Registry::HKEY_USERS\$($_.PSChildName)\$ncSub" }
+foreach ($root in $ncRoots) {
+    if (Test-Path $root) {
+        Remove-ItemProperty $root -Name 'NC_LanChangeProperties' -ErrorAction SilentlyContinue
+        Remove-ItemProperty $root -Name 'NC_LanProperties'       -ErrorAction SilentlyContinue
+    }
+}
+Write-Host "Network settings UI restored. Family-safe DNS removed."

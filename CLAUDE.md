@@ -17,8 +17,32 @@ Settings fields:
 - `GatewayChecklist` — the pre-watch "toll" (workouts + private chores like dishes/laundry).
 - `CoolDownChecklist` — the post-session "anti-potato" list.
 - `Notion` — optional Notion integration (see below).
+- `DnsFilter` — always-on family-safe DNS + network UI lock (see below).
 
 Runtime state (do not hand-edit) lives at `%ProgramData%\EarnedScreen\state.json`.
+
+## Family-safe DNS + network UI lock
+While the service runs, the active adapter's DNS is pinned to a **CleanBrowsing** filter (default
+**Family**) and the Windows network-settings UI is locked so it can't be changed. There is **no
+disable path** — it's always on; only `uninstall-service.ps1` reverts it (resets DNS to automatic and
+removes the registry locks). Relies on the existing `BrowserPolicyManager.DisableDoH()` so browsers
+can't bypass adapter DNS via encrypted DNS.
+
+Code: `src/EarnedScreen.Core/DnsFilterManager.cs` (sets DNS on the active adapter via PowerShell;
+`ResolveServers` maps Family/Adult/Security → IPs) and `NetworkUiLockManager.cs` (registry locks).
+Applied in `EnforcementEngine.Initialize()`; re-applied on `NetworkChange` in `Worker`.
+
+`DnsFilter` settings block:
+- `Enabled` (default **true**), `LockNetworkUi` (default **true**).
+- `Filter` — `Family` | `Adult` | `Security` | `Custom`.
+- `Servers` / `ServersV6` — DNS IPs (default CleanBrowsing Family `185.228.168.168/169.168`).
+
+Registry locks applied (removed on uninstall):
+- `HKLM\…\Policies\Explorer\SettingsPageVisibility` = `hide:network;…` (hides Settings network pages).
+- `…\Policies\Microsoft\Windows\Network Connections\NC_LanChangeProperties`=0 + `NC_LanProperties`=0
+  (HKLM + each real-user hive) — blocks the legacy ncpa.cpl TCP/IPv4 properties dialog.
+
+Trade-off: hiding the network pages also hides the Wi-Fi-connect UI; uninstall restores it.
 
 ## Notion daily-tasks gateway (optional)
 When enabled, the gateway *also* pulls the user's open tasks for **today** from the Notion **My Tasks**
@@ -46,8 +70,9 @@ then put `Enabled: true` + the token + database id into `settings.json`. The sec
 Two cooperating parts, one shared library:
 
 - **`EarnedScreen.Core`** — shared brain (no UI): `HostsFileManager` (the hosts-file block + DNS
-  flush), `BrowserPolicyManager` (DoH off), `Settings`/`SettingsStore`, `SessionState`/`StateStore`,
-  the named-pipe `PipeContract`, and `NotionTasksClient` (daily-tasks gateway).
+  flush), `BrowserPolicyManager` (DoH off), `DnsFilterManager` + `NetworkUiLockManager` (family-safe
+  DNS + UI lock), `Settings`/`SettingsStore`, `SessionState`/`StateStore`, the named-pipe
+  `PipeContract`, and `NotionTasksClient` (daily-tasks gateway).
 - **`EarnedScreen.Service`** — a Windows Service (runs as **SYSTEM**, so no UAC prompts). It is the
   *only* writer of the hosts file and the source of truth. Owns the session timer / Guillotine and
   exposes two named pipes. See `EnforcementEngine`, `CommandPipeServer`, `EventPipeServer`, `Worker`.
