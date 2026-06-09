@@ -141,7 +141,7 @@ public partial class MainWindow : Window
         else if (!status.SessionAvailableToday)
         {
             StatusText.Foreground = Brush("DangerBrush");
-            StatusText.Text = "🛑 Blocked — no sessions left today. Come back tomorrow.";
+            StatusText.Text = "🔒 Blocked — no sessions left today. Come back tomorrow.";
         }
         else
         {
@@ -208,7 +208,7 @@ public partial class MainWindow : Window
         else
         {
             MessageText.Foreground = Brush("DangerBrush");
-            MessageText.Text = $"🛑 {result.Message}";
+            MessageText.Text = $"🔒 {result.Message}";
         }
 
         await RefreshStatusAsync();
