@@ -35,7 +35,10 @@ public sealed class HostsFileManager
         {
             var domain = raw.Trim();
             if (domain.Length == 0) continue;
+            // Sinkhole BOTH families: 0.0.0.0 alone leaves AAAA (IPv6) records resolvable, so sites
+            // with IPv6 (e.g. YouTube) would still load. ":: " sinkholes the IPv6 lookup too.
             lines.Add($"0.0.0.0 {domain}");
+            lines.Add($":: {domain}");
         }
         lines.Add(BlockEnd);
         Write(lines);

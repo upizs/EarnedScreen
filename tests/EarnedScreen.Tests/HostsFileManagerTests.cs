@@ -28,6 +28,9 @@ public sealed class HostsFileManagerTests : IDisposable
         Assert.Contains(HostsFileManager.BlockStart, text);
         Assert.Contains("0.0.0.0 netflix.com", text);
         Assert.Contains("0.0.0.0 youtube.com", text);
+        // IPv6 must be sinkholed too, or sites with AAAA records still load.
+        Assert.Contains(":: netflix.com", text);
+        Assert.Contains(":: youtube.com", text);
         Assert.Contains(HostsFileManager.BlockEnd, text);
     }
 

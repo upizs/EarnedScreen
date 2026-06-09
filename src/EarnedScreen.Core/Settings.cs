@@ -39,7 +39,8 @@ public sealed class Settings
             "disneyplus.com", "www.disneyplus.com",
             "twitch.tv", "www.twitch.tv",
             "primevideo.com", "www.primevideo.com",
-            "max.com", "www.max.com", "hbomax.com", "www.hbomax.com",
+            "max.com", "www.max.com", "play.max.com",
+            "hbomax.com", "www.hbomax.com", "play.hbomax.com",
         },
         GatewayChecklist = new()
         {
