@@ -7,20 +7,43 @@
         mc:Ignorable="d"
         Title="Cool Down"
         WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
-        WindowStartupLocation="Manual"
-        Topmost="True" Background="#111418">
+        WindowStartupLocation="Manual" FontFamily="Segoe UI"
+        Topmost="True" Background="{StaticResource WindowBackground}">
     <Grid>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520">
-            <TextBlock Text="⏳ Time's up." FontSize="40" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
-            <TextBlock Text="The Anti-Potato Protocol. Get your body moving before you carry on."
-                       FontSize="16" Foreground="#AAB2BD" TextWrapping="Wrap" TextAlignment="Center" Margin="0,12,0,28"/>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="560" Margin="40"
+                    RenderTransformOrigin="0.5,0.5">
+            <StackPanel.RenderTransform>
+                <TranslateTransform x:Name="Slide" Y="0"/>
+            </StackPanel.RenderTransform>
+            <StackPanel.Triggers>
+                <EventTrigger RoutedEvent="StackPanel.Loaded">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.5"/>
+                            <DoubleAnimation Storyboard.TargetName="Slide" Storyboard.TargetProperty="Y"
+                                             From="18" To="0" Duration="0:0:0.5"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </StackPanel.Triggers>
 
-            <Border x:Name="ChecklistHost" Background="#1B2026" CornerRadius="10" Padding="24">
-                <StackPanel x:Name="ChecklistPanel"/>
+            <TextBlock Text="Time's up." FontSize="46" FontWeight="Bold"
+                       Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center"/>
+            <TextBlock Text="Get your body moving before you carry on."
+                       FontSize="16" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"
+                       TextAlignment="Center" Margin="0,10,0,4"/>
+            <TextBlock x:Name="QuoteText" Style="{StaticResource QuoteText}" TextAlignment="Center"
+                       HorizontalAlignment="Center" Margin="0,6,0,28"/>
+
+            <Border x:Name="ChecklistHost" CornerRadius="16" Padding="28,22"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource SurfaceBorderBrush}" BorderThickness="1">
+                <StackPanel x:Name="ChecklistPanel" MinWidth="300"/>
             </Border>
 
-            <Button x:Name="DoneButton" Content="I'm back in motion" Height="50" FontSize="16"
-                    FontWeight="SemiBold" Margin="0,28,0,0" Click="DoneButton_Click"/>
+            <Button x:Name="DoneButton" Style="{StaticResource PrimaryButton}"
+                    Content="I'm back in motion" Width="320" Margin="0,28,0,0"
+                    Click="DoneButton_Click"/>
         </StackPanel>
     </Grid>
 </Window>

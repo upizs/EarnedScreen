@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
-using System.Windows.Media;
 using EarnedScreen.Core;
 
 namespace EarnedScreen.App;
@@ -38,23 +37,20 @@ public partial class CoolDownWindow : Window
         IsInteractive = interactive;
         _bounds = bounds;
 
+        QuoteText.Text = "The wall is only as strong as your will.";
+
         if (!interactive)
         {
             // Cover-only window for secondary monitors: just the headline, no checklist/button.
             ChecklistHost.Visibility = Visibility.Collapsed;
             DoneButton.Visibility = Visibility.Collapsed;
+            QuoteText.Visibility = Visibility.Collapsed;
             return;
         }
 
         foreach (var item in settings.CoolDownChecklist)
         {
-            var cb = new CheckBox
-            {
-                Content = item,
-                Margin = new Thickness(0, 6, 0, 6),
-                FontSize = 16,
-                Foreground = Brushes.White,
-            };
+            var cb = new CheckBox { Content = item, Style = (Style)FindResource("ChecklistCheckBox") };
             cb.Checked += (_, _) => UpdateDoneButton();
             cb.Unchecked += (_, _) => UpdateDoneButton();
             _checkboxes.Add(cb);

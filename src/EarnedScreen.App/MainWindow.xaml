@@ -5,41 +5,101 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EarnedScreen.App"
         mc:Ignorable="d"
-        Title="EarnedScreen" Height="560" Width="440"
-        WindowStartupLocation="CenterScreen">
-    <Grid Margin="24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        Title="EarnedScreen" Height="640" Width="470"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" FontFamily="Segoe UI">
 
-        <TextBlock Grid.Row="0" Text="EarnedScreen" FontSize="28" FontWeight="Bold"/>
-        <StackPanel Grid.Row="1" Margin="0,8,0,16">
-            <TextBlock x:Name="StatusText" FontSize="14" Foreground="#555"/>
-            <TextBlock x:Name="DnsStatusText" FontSize="12" Foreground="#2E7D32" Margin="0,4,0,0"/>
-        </StackPanel>
+    <Border Margin="16" CornerRadius="18" Background="{StaticResource WindowBackground}"
+            BorderBrush="{StaticResource SurfaceBorderBrush}" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect Color="Black" BlurRadius="34" ShadowDepth="0" Opacity="0.65"/>
+        </Border.Effect>
 
-        <Border Grid.Row="2" BorderBrush="#DDDDDD" BorderThickness="1" CornerRadius="8" Padding="16">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel>
-                    <TextBlock Text="Pay the toll to earn your session:" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                    <StackPanel x:Name="ChecklistPanel"/>
+        <Border.RenderTransform>
+            <TranslateTransform x:Name="RootSlide" Y="0"/>
+        </Border.RenderTransform>
 
-                    <TextBlock x:Name="NotionHeader" Text="Today's tasks (Notion):" FontWeight="SemiBold"
-                               Margin="0,16,0,8" Visibility="Collapsed"/>
-                    <StackPanel x:Name="NotionPanel"/>
-                    <TextBlock x:Name="NotionNote" Margin="0,10,0,0" FontSize="12" Foreground="#999"
-                               TextWrapping="Wrap" Visibility="Collapsed"/>
-                </StackPanel>
-            </ScrollViewer>
-        </Border>
+        <Border.Triggers>
+            <EventTrigger RoutedEvent="Border.Loaded">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.35"/>
+                        <DoubleAnimation Storyboard.TargetName="RootSlide" Storyboard.TargetProperty="Y"
+                                         From="14" To="0" Duration="0:0:0.35"/>
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Border.Triggers>
 
-        <TextBlock Grid.Row="3" x:Name="MessageText" Margin="0,14,0,10" TextWrapping="Wrap" Foreground="#333"/>
+        <Grid Margin="26,16,26,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <Button Grid.Row="4" x:Name="EarnButton" Content="Earn Screen Time"
-                Height="48" FontSize="16" FontWeight="SemiBold" Click="EarnButton_Click"/>
-    </Grid>
+            <!-- Title bar (drag + close) -->
+            <Grid Grid.Row="0" x:Name="TitleBar" Background="Transparent" MouseLeftButtonDown="TitleBar_MouseDown">
+                <TextBlock Text="◈  EARNEDSCREEN" Foreground="{StaticResource FaintBrush}"
+                           FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <Button HorizontalAlignment="Right" Style="{StaticResource IconButton}"
+                        Content="✕" Click="CloseButton_Click"/>
+            </Grid>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="1" Margin="0,14,0,0">
+                <TextBlock Text="Earn your screen." Style="{StaticResource TitleText}"/>
+                <TextBlock x:Name="QuoteText" Style="{StaticResource QuoteText}" Margin="0,8,0,0"/>
+            </StackPanel>
+
+            <!-- Status pills -->
+            <StackPanel Grid.Row="2" Margin="0,18,0,0">
+                <TextBlock x:Name="StatusText" Foreground="{StaticResource TextBrush}" FontSize="14"/>
+                <TextBlock x:Name="DnsStatusText" Foreground="{StaticResource SuccessBrush}" FontSize="12" Margin="0,5,0,0"/>
+            </StackPanel>
+
+            <!-- Checklist card -->
+            <Border Grid.Row="3" Margin="0,18,0,0" CornerRadius="14"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource SurfaceBorderBrush}" BorderThickness="1" Padding="16,14">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="2,0,2,8">
+                        <TextBlock Text="PAY THE TOLL" Style="{StaticResource SectionText}"/>
+                        <TextBlock x:Name="ProgressText" Style="{StaticResource SectionText}"
+                                   HorizontalAlignment="Right" Foreground="{StaticResource SuccessBrush}"/>
+                    </Grid>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,2,8,0">
+                        <StackPanel>
+                            <StackPanel x:Name="ChecklistPanel"/>
+
+                            <TextBlock x:Name="NotionHeader" Text="TODAY'S TASKS · NOTION"
+                                       Style="{StaticResource SectionText}" Margin="2,16,0,6" Visibility="Collapsed"/>
+                            <StackPanel x:Name="NotionPanel"/>
+                            <TextBlock x:Name="NotionNote" Margin="2,10,0,0" FontSize="12"
+                                       Foreground="{StaticResource FaintBrush}" TextWrapping="Wrap"
+                                       Visibility="Collapsed"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Message -->
+            <TextBlock Grid.Row="4" x:Name="MessageText" Margin="2,14,2,12" TextWrapping="Wrap"
+                       Foreground="{StaticResource MutedBrush}" FontSize="13"/>
+
+            <!-- Earn button -->
+            <Button Grid.Row="5" x:Name="EarnButton" Style="{StaticResource PrimaryButton}"
+                    Content="Earn Screen Time" Click="EarnButton_Click"/>
+        </Grid>
+    </Border>
 </Window>

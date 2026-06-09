@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 using EarnedScreen.Core;
 
@@ -7,6 +8,18 @@ namespace EarnedScreen.App;
 
 public partial class MainWindow : Window
 {
+    private static readonly string[] Quotes =
+    {
+        "Discipline is choosing what you want most over what you want now.",
+        "The wall is only as strong as your will. Make both strong.",
+        "Earn it. Then enjoy it without guilt.",
+        "Small reps today. A different person in a year.",
+        "Motivation gets you started. Systems keep you going.",
+        "You don't rise to your goals — you fall to your systems.",
+        "Do the hard thing first. The screen can wait.",
+        "Future you is watching. Make them proud.",
+    };
+
     private readonly ServiceClient _client = new();
     private readonly Settings _settings = new SettingsStore().Load();
     private readonly NotionTasksClient _notion = new();
@@ -20,6 +33,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        QuoteText.Text = Quotes[Random.Shared.Next(Quotes.Length)];
 
         BuildChecklist();
 
@@ -44,16 +59,21 @@ public partial class MainWindow : Window
     private void BuildChecklist()
     {
         foreach (var item in _settings.GatewayChecklist)
-        {
-            var cb = new CheckBox { Content = item, Margin = new Thickness(0, 4, 0, 4), FontSize = 14 };
-            cb.Checked += (_, _) => UpdateEarnButton();
-            cb.Unchecked += (_, _) => UpdateEarnButton();
-            _checkboxes.Add(cb);
-            ChecklistPanel.Children.Add(cb);
-        }
+            ChecklistPanel.Children.Add(NewItem(item));
+
+        UpdateEarnButton();
     }
 
-    private bool AllChecked => _checkboxes.All(c => c.IsChecked == true);
+    private CheckBox NewItem(string text)
+    {
+        var cb = new CheckBox { Content = text, Style = (Style)FindResource("ChecklistCheckBox") };
+        cb.Checked += (_, _) => UpdateEarnButton();
+        cb.Unchecked += (_, _) => UpdateEarnButton();
+        _checkboxes.Add(cb);
+        return cb;
+    }
+
+    private bool AllChecked => _checkboxes.Count > 0 && _checkboxes.All(c => c.IsChecked == true);
 
     private async Task LoadNotionTasksAsync()
     {
@@ -85,10 +105,7 @@ public partial class MainWindow : Window
 
         foreach (var task in result.Tasks)
         {
-            var cb = new CheckBox { Content = task.Title, Margin = new Thickness(0, 4, 0, 4), FontSize = 14 };
-            cb.Checked += (_, _) => UpdateEarnButton();
-            cb.Unchecked += (_, _) => UpdateEarnButton();
-            _checkboxes.Add(cb);
+            var cb = NewItem(task.Title);
             _notionPageIds[cb] = task.PageId;
             NotionPanel.Children.Add(cb);
         }
@@ -138,10 +155,20 @@ public partial class MainWindow : Window
 
     private void UpdateEarnButton()
     {
+        var done = _checkboxes.Count(c => c.IsChecked == true);
+        ProgressText.Text = $"{done} / {_checkboxes.Count} DONE";
+
         var available = _lastStatus?.SessionAvailableToday == true
                         && _lastStatus?.Status == BlockStatus.Blocked;
         EarnButton.IsEnabled = available && AllChecked;
     }
+
+    private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == MouseButton.Left) DragMove();
+    }
+
+    private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
 
     private async void EarnButton_Click(object sender, RoutedEventArgs e)
     {
