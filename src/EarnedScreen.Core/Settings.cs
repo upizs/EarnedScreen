@@ -51,7 +51,9 @@ public sealed class Settings
         CoolDownChecklist = new()
         {
             "20 push-ups",
+            "20 sit-ups",
             "20 squats",
+            "20 jumping jacks",
             "Drink a glass of water",
             "Stand up & stretch",
         },

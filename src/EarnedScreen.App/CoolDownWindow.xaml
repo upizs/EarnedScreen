@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:EarnedScreen.App"
         mc:Ignorable="d"
         Title="Cool Down"
-        WindowState="Maximized" WindowStyle="None" ResizeMode="NoResize"
+        WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
+        WindowStartupLocation="Manual"
         Topmost="True" Background="#111418">
     <Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="520">
@@ -14,7 +15,7 @@
             <TextBlock Text="The Anti-Potato Protocol. Get your body moving before you carry on."
                        FontSize="16" Foreground="#AAB2BD" TextWrapping="Wrap" TextAlignment="Center" Margin="0,12,0,28"/>
 
-            <Border Background="#1B2026" CornerRadius="10" Padding="24">
+            <Border x:Name="ChecklistHost" Background="#1B2026" CornerRadius="10" Padding="24">
                 <StackPanel x:Name="ChecklistPanel"/>
             </Border>
 

@@ -4,12 +4,24 @@
     <ProjectReference Include="..\EarnedScreen.Core\EarnedScreen.Core.csproj" />
   </ItemGroup>
 
+  <!-- Drop the WinForms/Drawing global usings so their types (CheckBox, Application, Brushes) don't
+       clash with WPF. We reference System.Windows.Forms.Screen / System.Drawing.Rectangle by full name. -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- WinForms is enabled only for System.Windows.Forms.Screen (multi-monitor enumeration). -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- WPF uses the manifest for per-monitor DPI; silence the WinForms-only DPI analyzer. -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
   </PropertyGroup>
 
 </Project>
