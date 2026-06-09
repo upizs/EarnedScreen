@@ -20,7 +20,7 @@ if ($existing) {
     Write-Host "Existing service removed."
 }
 Write-Host "Stopping the UI app if running..."
-taskkill /IM EarnedScreen.App.exe /F 2>$null | Out-Null
+Get-Process EarnedScreen.App -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 
 # --- Step 2: Build service + UI app (Release) ---
 Write-Host "Building service (Release)..."

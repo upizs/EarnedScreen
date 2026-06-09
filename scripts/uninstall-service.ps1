@@ -17,7 +17,7 @@ if ($existing) {
 
 # Stop the UI app and remove its launch-at-login entry.
 Write-Host "Stopping the UI app and removing launch-at-login..."
-taskkill /IM EarnedScreen.App.exe /F 2>$null | Out-Null
+Get-Process EarnedScreen.App -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 $runKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'
 if (Get-ItemProperty -Path $runKey -Name 'EarnedScreen' -ErrorAction SilentlyContinue) {
     Remove-ItemProperty -Path $runKey -Name 'EarnedScreen' -ErrorAction SilentlyContinue
