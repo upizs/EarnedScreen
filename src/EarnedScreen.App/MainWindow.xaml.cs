@@ -128,7 +128,8 @@ public partial class MainWindow : Window
         {
             StatusText.Foreground = Brush("DangerBrush");
             StatusText.Text = "⚠ Service not reachable. Is the EarnedScreen service running?";
-            EarnButton.IsEnabled = false;
+            _lastStatus = null;
+            UpdateEarnButton();
             return;
         }
 
@@ -161,12 +162,17 @@ public partial class MainWindow : Window
 
     private void UpdateEarnButton()
     {
+        // Only let the user work the toll when a session is actually earnable today.
+        var canEarn = _lastStatus?.SessionAvailableToday == true
+                      && _lastStatus?.Status == BlockStatus.Blocked;
+
+        foreach (var cb in _checkboxes)
+            cb.IsEnabled = canEarn;
+
         var done = _checkboxes.Count(c => c.IsChecked == true);
         ProgressText.Text = $"{done} / {_checkboxes.Count} DONE";
 
-        var available = _lastStatus?.SessionAvailableToday == true
-                        && _lastStatus?.Status == BlockStatus.Blocked;
-        EarnButton.IsEnabled = available && AllChecked;
+        EarnButton.IsEnabled = canEarn && AllChecked;
     }
 
     private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)

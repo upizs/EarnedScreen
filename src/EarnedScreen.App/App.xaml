@@ -97,6 +97,9 @@
                                 <Setter TargetName="Row" Property="Background" Value="#14FFFFFF"/>
                                 <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource SuccessBrush}"/>
                             </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Row" Property="Opacity" Value="0.4"/>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
