@@ -162,17 +162,28 @@ public partial class MainWindow : Window
 
     private void UpdateEarnButton()
     {
-        // Only let the user work the toll when a session is actually earnable today.
+        // The toll is only shown when a session is actually earnable today.
         var canEarn = _lastStatus?.SessionAvailableToday == true
                       && _lastStatus?.Status == BlockStatus.Blocked;
 
-        foreach (var cb in _checkboxes)
-            cb.IsEnabled = canEarn;
+        TollCard.Visibility = canEarn ? Visibility.Visible : Visibility.Collapsed;
+        EarnButton.Visibility = canEarn ? Visibility.Visible : Visibility.Collapsed;
+        IdleMessage.Visibility = canEarn ? Visibility.Collapsed : Visibility.Visible;
+
+        if (!canEarn)
+        {
+            IdleMessage.Text = _lastStatus is null
+                ? "Waiting for the EarnedScreen service…"
+                : _lastStatus.Status == BlockStatus.Unlocked
+                    ? "😎 Your session is running. Enjoy it."
+                    : "🔒 Today's session is used.\nCome back tomorrow.";
+            return;
+        }
 
         var done = _checkboxes.Count(c => c.IsChecked == true);
         ProgressText.Text = $"{done} / {_checkboxes.Count} DONE";
 
-        EarnButton.IsEnabled = canEarn && AllChecked;
+        EarnButton.IsEnabled = AllChecked;
     }
 
     private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
