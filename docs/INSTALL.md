@@ -135,5 +135,31 @@ Fields:
 | `BlockedDomains` | Netflix, YouTube, Hulu, Disney+, Twitch, Prime, Max | Hosts entries |
 | `GatewayChecklist` | Push-ups, sit-ups, squats, jumping jacks, chores | Pre-watch toll |
 | `CoolDownChecklist` | Push-ups, squats, water, stretch | Post-session recovery |
+| `Notion` | disabled | Optional Notion daily-tasks gateway (see below) |
 
 **These are edited via Claude Code only.** See [CLAUDE.md](../CLAUDE.md).
+
+---
+
+## Notion daily-tasks gateway (optional)
+
+When enabled, the gateway also pulls your **open tasks due today** from the Notion **My Tasks**
+database and makes them required (alongside the workouts). Completing them and earning the session
+marks them **Done** in Notion. If Notion is unreachable or unconfigured, the static checklist still
+works and a "Notion tasklist not found" note appears — you're never locked out by a Notion issue.
+
+**Setup:**
+1. Create an internal integration at <https://www.notion.so/profile/integrations> and copy its secret.
+2. Open the **My Tasks** database in Notion → **•••** → **Connections** → add your integration.
+3. Edit `C:\ProgramData\EarnedScreen\settings.json` (via Claude Code) and fill in the `Notion` block:
+   ```json
+   "Notion": {
+     "Enabled": true,
+     "Token": "ntn_xxx_your_secret",
+     "TasksDatabaseId": "f87718af-a132-498f-8549-78e5c8fcd826",
+     "TitleProperty": "Task name",
+     "DueProperty": "Due",
+     "StatusProperty": "Status"
+   }
+   ```
+4. Relaunch `EarnedScreen.App`. Today's open tasks appear as required checkboxes.

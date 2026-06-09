@@ -21,6 +21,9 @@ public sealed class Settings
     /// <summary>The post-session "anti-potato" list shown when the Guillotine drops.</summary>
     public List<string> CoolDownChecklist { get; set; } = new();
 
+    /// <summary>Optional Notion integration: pulls today's open tasks into the gateway checklist.</summary>
+    public NotionSettings Notion { get; set; } = new();
+
     public static Settings CreateDefault() => new()
     {
         SessionMinutes = 60,
@@ -52,5 +55,32 @@ public sealed class Settings
             "Drink a glass of water",
             "Stand up & stretch",
         },
+        Notion = new(),
     };
+}
+
+/// <summary>
+/// Notion integration config. Disabled by default — Claude Code fills in the token + database id
+/// after the user creates an internal integration and shares the My Tasks database with it.
+/// Lives in the private settings.json, never committed.
+/// </summary>
+public sealed class NotionSettings
+{
+    /// <summary>Master switch. When false, the gateway shows only the static checklist.</summary>
+    public bool Enabled { get; set; } = false;
+
+    /// <summary>Notion internal integration secret (starts with "secret_" / "ntn_").</summary>
+    public string Token { get; set; } = "";
+
+    /// <summary>The "My Tasks" database id.</summary>
+    public string TasksDatabaseId { get; set; } = "";
+
+    /// <summary>Title property name (the Notion Tasks template uses "Task name").</summary>
+    public string TitleProperty { get; set; } = "Task name";
+
+    /// <summary>Date property used to find "today's" tasks.</summary>
+    public string DueProperty { get; set; } = "Due";
+
+    /// <summary>Status property used to tell open tasks from completed ones.</summary>
+    public string StatusProperty { get; set; } = "Status";
 }

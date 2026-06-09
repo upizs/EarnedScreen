@@ -20,10 +20,18 @@
         <TextBlock Grid.Row="1" x:Name="StatusText" Margin="0,8,0,16" FontSize="14" Foreground="#555"/>
 
         <Border Grid.Row="2" BorderBrush="#DDDDDD" BorderThickness="1" CornerRadius="8" Padding="16">
-            <StackPanel>
-                <TextBlock Text="Pay the toll to earn your session:" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                <StackPanel x:Name="ChecklistPanel"/>
-            </StackPanel>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="Pay the toll to earn your session:" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                    <StackPanel x:Name="ChecklistPanel"/>
+
+                    <TextBlock x:Name="NotionHeader" Text="Today's tasks (Notion):" FontWeight="SemiBold"
+                               Margin="0,16,0,8" Visibility="Collapsed"/>
+                    <StackPanel x:Name="NotionPanel"/>
+                    <TextBlock x:Name="NotionNote" Margin="0,10,0,0" FontSize="12" Foreground="#999"
+                               TextWrapping="Wrap" Visibility="Collapsed"/>
+                </StackPanel>
+            </ScrollViewer>
         </Border>
 
         <TextBlock Grid.Row="3" x:Name="MessageText" Margin="0,14,0,10" TextWrapping="Wrap" Foreground="#333"/>

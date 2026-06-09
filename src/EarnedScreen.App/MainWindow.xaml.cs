@@ -9,7 +9,10 @@ public partial class MainWindow : Window
 {
     private readonly ServiceClient _client = new();
     private readonly Settings _settings = new SettingsStore().Load();
+    private readonly NotionTasksClient _notion = new();
     private readonly List<CheckBox> _checkboxes = new();
+    private readonly Dictionary<CheckBox, string> _notionPageIds = new();
+    private string? _notionDoneOptionId;
     private readonly DispatcherTimer _statusTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private readonly CancellationTokenSource _cts = new();
     private bool _coolDownOpen;
@@ -26,8 +29,16 @@ public partial class MainWindow : Window
         _statusTimer.Tick += async (_, _) => await RefreshStatusAsync();
         _statusTimer.Start();
 
-        Loaded += async (_, _) => await RefreshStatusAsync();
-        Closed += (_, _) => _cts.Cancel();
+        Loaded += async (_, _) =>
+        {
+            await RefreshStatusAsync();
+            await LoadNotionTasksAsync();
+        };
+        Closed += (_, _) =>
+        {
+            _cts.Cancel();
+            _notion.Dispose();
+        };
     }
 
     private void BuildChecklist()
@@ -43,6 +54,53 @@ public partial class MainWindow : Window
     }
 
     private bool AllChecked => _checkboxes.All(c => c.IsChecked == true);
+
+    private async Task LoadNotionTasksAsync()
+    {
+        if (!_settings.Notion.Enabled)
+        {
+            ShowNotionNote("Notion tasklist not found.");
+            return;
+        }
+
+        ShowNotionNote("Loading tasks from Notion…");
+        var result = await _notion.GetTodayOpenTasksAsync(_settings.Notion, _cts.Token);
+
+        if (!result.Available)
+        {
+            ShowNotionNote("Notion tasklist not found.");
+            return;
+        }
+
+        _notionDoneOptionId = result.DoneOptionId;
+
+        if (result.Tasks.Count == 0)
+        {
+            ShowNotionNote("No Notion tasks due today. 🎉");
+            return;
+        }
+
+        NotionNote.Visibility = Visibility.Collapsed;
+        NotionHeader.Visibility = Visibility.Visible;
+
+        foreach (var task in result.Tasks)
+        {
+            var cb = new CheckBox { Content = task.Title, Margin = new Thickness(0, 4, 0, 4), FontSize = 14 };
+            cb.Checked += (_, _) => UpdateEarnButton();
+            cb.Unchecked += (_, _) => UpdateEarnButton();
+            _checkboxes.Add(cb);
+            _notionPageIds[cb] = task.PageId;
+            NotionPanel.Children.Add(cb);
+        }
+
+        UpdateEarnButton();
+    }
+
+    private void ShowNotionNote(string text)
+    {
+        NotionNote.Text = text;
+        NotionNote.Visibility = Visibility.Visible;
+    }
 
     private async Task RefreshStatusAsync()
     {
@@ -94,7 +152,14 @@ public partial class MainWindow : Window
         MessageText.Text = result?.Message ?? "Could not reach the service.";
 
         if (result?.Status == BlockStatus.Unlocked)
+        {
+            // Session committed: mark the completed Notion tasks done (best-effort, fire-and-forget).
+            foreach (var (cb, pageId) in _notionPageIds)
+                if (cb.IsChecked == true)
+                    _ = _notion.MarkTaskDoneAsync(_settings.Notion, pageId, _notionDoneOptionId, _cts.Token);
+
             foreach (var cb in _checkboxes) cb.IsChecked = false;
+        }
 
         await RefreshStatusAsync();
     }
