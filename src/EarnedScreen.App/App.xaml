@@ -14,6 +14,8 @@
         <SolidColorBrush x:Key="BoxBrush" Color="#1E2330"/>
         <SolidColorBrush x:Key="BoxBorderBrush" Color="#39404F"/>
         <SolidColorBrush x:Key="SuccessBrush" Color="#34D399"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#FF5F56"/>
+        <SolidColorBrush x:Key="WarnBrush" Color="#FFA53C"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#7C5CFF"/>
 
         <LinearGradientBrush x:Key="WindowBackground" StartPoint="0,0" EndPoint="0.4,1">

@@ -33,6 +33,10 @@ public partial class App : Application
         ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
         _tray = new TrayController();
+
+        // "--show" opens the gateway immediately (e.g. a Start-menu shortcut).
+        if (e.Args.Any(a => a.Equals("--show", StringComparison.OrdinalIgnoreCase)))
+            _tray.ShowGateway();
     }
 
     protected override void OnExit(ExitEventArgs e)

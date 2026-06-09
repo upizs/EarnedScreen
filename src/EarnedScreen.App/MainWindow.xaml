@@ -70,6 +70,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="2,0,2,8">
@@ -85,11 +86,13 @@
                             <TextBlock x:Name="NotionHeader" Text="TODAY'S TASKS · NOTION"
                                        Style="{StaticResource SectionText}" Margin="2,16,0,6" Visibility="Collapsed"/>
                             <StackPanel x:Name="NotionPanel"/>
-                            <TextBlock x:Name="NotionNote" Margin="2,10,0,0" FontSize="12"
-                                       Foreground="{StaticResource FaintBrush}" TextWrapping="Wrap"
-                                       Visibility="Collapsed"/>
                         </StackPanel>
                     </ScrollViewer>
+
+                    <!-- Notion status note: fixed (outside the scroll area). -->
+                    <TextBlock Grid.Row="2" x:Name="NotionNote" Margin="2,12,0,0" FontSize="12"
+                               Foreground="{StaticResource WarnBrush}" TextWrapping="Wrap"
+                               Visibility="Collapsed"/>
                 </Grid>
             </Border>
 

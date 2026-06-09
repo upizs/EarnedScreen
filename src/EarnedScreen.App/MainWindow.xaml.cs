@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using EarnedScreen.Core;
 
@@ -94,7 +95,7 @@ public partial class MainWindow : Window
 
         if (result.Tasks.Count == 0)
         {
-            ShowNotionNote("No Notion tasks due today. 🎉");
+            ShowNotionNote("No Notion tasks due today. 🎉", Brush("SuccessBrush"));
             return;
         }
 
@@ -111,17 +112,21 @@ public partial class MainWindow : Window
         UpdateEarnButton();
     }
 
-    private void ShowNotionNote(string text)
+    private void ShowNotionNote(string text, Brush? color = null)
     {
         NotionNote.Text = text;
+        NotionNote.Foreground = color ?? Brush("WarnBrush");
         NotionNote.Visibility = Visibility.Visible;
     }
+
+    private Brush Brush(string key) => (Brush)FindResource(key);
 
     private async Task RefreshStatusAsync()
     {
         var status = await _client.GetStatusAsync(_cts.Token);
         if (status is null)
         {
+            StatusText.Foreground = Brush("DangerBrush");
             StatusText.Text = "⚠ Service not reachable. Is the EarnedScreen service running?";
             EarnButton.IsEnabled = false;
             return;
@@ -130,15 +135,18 @@ public partial class MainWindow : Window
         if (status.Status == BlockStatus.Unlocked)
         {
             var span = TimeSpan.FromSeconds(status.RemainingSeconds);
-            StatusText.Text = $"🟢 Unlocked — {span:hh\\:mm\\:ss} remaining.";
+            StatusText.Foreground = Brush("SuccessBrush");
+            StatusText.Text = $"😎 Unlocked — {span:hh\\:mm\\:ss} remaining.";
         }
         else if (!status.SessionAvailableToday)
         {
-            StatusText.Text = "🔒 Blocked — no sessions left today. Come back tomorrow.";
+            StatusText.Foreground = Brush("DangerBrush");
+            StatusText.Text = "🛑 Blocked — no sessions left today. Come back tomorrow.";
         }
         else
         {
-            StatusText.Text = $"🔒 Blocked — one {status.SessionMinutes}-minute session available.";
+            StatusText.Foreground = Brush("DangerBrush");
+            StatusText.Text = $"💪 Blocked — one {status.SessionMinutes}-minute session to earn.";
         }
 
         DnsStatusText.Text = status.DnsFilterActive
@@ -172,22 +180,35 @@ public partial class MainWindow : Window
     {
         if (!AllChecked)
         {
-            MessageText.Text = "Finish every item first. No shortcuts.";
+            MessageText.Foreground = Brush("WarnBrush");
+            MessageText.Text = "✋ Complete the list first. No shortcuts.";
             return;
         }
 
         EarnButton.IsEnabled = false;
         var result = await _client.RequestUnlockAsync(_cts.Token);
-        MessageText.Text = result?.Message ?? "Could not reach the service.";
 
-        if (result?.Status == BlockStatus.Unlocked)
+        if (result is null)
         {
+            MessageText.Foreground = Brush("DangerBrush");
+            MessageText.Text = "Could not reach the service.";
+        }
+        else if (result.Status == BlockStatus.Unlocked)
+        {
+            MessageText.Foreground = Brush("SuccessBrush");
+            MessageText.Text = $"😎 {result.Message}";
+
             // Session committed: mark the completed Notion tasks done (best-effort, fire-and-forget).
             foreach (var (cb, pageId) in _notionPageIds)
                 if (cb.IsChecked == true)
                     _ = _notion.MarkTaskDoneAsync(_settings.Notion, pageId, _notionDoneOptionId, _cts.Token);
 
             foreach (var cb in _checkboxes) cb.IsChecked = false;
+        }
+        else
+        {
+            MessageText.Foreground = Brush("DangerBrush");
+            MessageText.Text = $"🛑 {result.Message}";
         }
 
         await RefreshStatusAsync();
