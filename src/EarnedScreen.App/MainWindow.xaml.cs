@@ -28,7 +28,6 @@ public partial class MainWindow : Window
     private string? _notionDoneOptionId;
     private readonly DispatcherTimer _statusTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private readonly CancellationTokenSource _cts = new();
-    private bool _coolDownOpen;
 
     public MainWindow()
     {
@@ -38,9 +37,7 @@ public partial class MainWindow : Window
 
         BuildChecklist();
 
-        _client.SessionEnded += OnSessionEnded;
-        _ = _client.ListenForEventsAsync(_cts.Token);
-
+        // Status polling only runs while this window is open; stopped on close to stay idle-cheap.
         _statusTimer.Tick += async (_, _) => await RefreshStatusAsync();
         _statusTimer.Start();
 
@@ -51,6 +48,7 @@ public partial class MainWindow : Window
         };
         Closed += (_, _) =>
         {
+            _statusTimer.Stop();
             _cts.Cancel();
             _notion.Dispose();
         };
@@ -193,38 +191,5 @@ public partial class MainWindow : Window
         }
 
         await RefreshStatusAsync();
-    }
-
-    private void OnSessionEnded()
-    {
-        Dispatcher.Invoke(() =>
-        {
-            if (_coolDownOpen) return;
-            _coolDownOpen = true;
-
-            var screens = System.Windows.Forms.Screen.AllScreens;
-            var primary = System.Windows.Forms.Screen.PrimaryScreen ?? screens[0];
-
-            // One lock per monitor; only the primary carries the checklist, the rest are covers.
-            var windows = new List<CoolDownWindow>();
-            foreach (var screen in screens)
-            {
-                var interactive = screen.DeviceName == primary.DeviceName;
-                windows.Add(new CoolDownWindow(_settings, interactive, screen.Bounds));
-            }
-
-            var interactiveWindow = windows.FirstOrDefault(w => w.IsInteractive) ?? windows[0];
-            interactiveWindow.Completed += () =>
-            {
-                foreach (var w in windows)
-                {
-                    w.AllowClose();
-                    w.Close();
-                }
-                _coolDownOpen = false;
-            };
-
-            foreach (var w in windows) w.Show();
-        });
     }
 }

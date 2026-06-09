@@ -15,6 +15,14 @@ if ($existing) {
     Write-Host "Service '$name' was not installed."
 }
 
+# Stop the UI app and remove its launch-at-login entry.
+Write-Host "Stopping the UI app and removing launch-at-login..."
+taskkill /IM EarnedScreen.App.exe /F 2>$null | Out-Null
+$runKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'
+if (Get-ItemProperty -Path $runKey -Name 'EarnedScreen' -ErrorAction SilentlyContinue) {
+    Remove-ItemProperty -Path $runKey -Name 'EarnedScreen' -ErrorAction SilentlyContinue
+}
+
 # Strip the EarnedScreen-managed block so the hosts file is clean again.
 if (Test-Path $hosts) {
     $lines = Get-Content $hosts

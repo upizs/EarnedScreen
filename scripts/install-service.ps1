@@ -1,14 +1,16 @@
 #Requires -RunAsAdministrator
 $ErrorActionPreference = 'Stop'
 
-$root = Split-Path -Parent $PSScriptRoot
-$name = 'EarnedScreen'
-$proj = Join-Path $root 'src\EarnedScreen.Service\EarnedScreen.Service.csproj'
-$exe  = Join-Path $root 'src\EarnedScreen.Service\bin\Release\net9.0-windows\EarnedScreen.Service.exe'
-$data = Join-Path $env:ProgramData 'EarnedScreen'
+$root    = Split-Path -Parent $PSScriptRoot
+$name    = 'EarnedScreen'
+$proj    = Join-Path $root 'src\EarnedScreen.Service\EarnedScreen.Service.csproj'
+$exe     = Join-Path $root 'src\EarnedScreen.Service\bin\Release\net9.0-windows\EarnedScreen.Service.exe'
+$appProj = Join-Path $root 'src\EarnedScreen.App\EarnedScreen.App.csproj'
+$appExe  = Join-Path $root 'src\EarnedScreen.App\bin\Release\net9.0-windows\EarnedScreen.App.exe'
+$data    = Join-Path $env:ProgramData 'EarnedScreen'
 $settingsFile = Join-Path $data 'settings.json'
 
-# --- Step 1: Stop and remove any existing service FIRST so the build can overwrite the exe ---
+# --- Step 1: Stop the running service AND UI app first so the build can overwrite their binaries ---
 $existing = Get-Service -Name $name -ErrorAction SilentlyContinue
 if ($existing) {
     Write-Host "Stopping existing service..."
@@ -17,11 +19,16 @@ if ($existing) {
     Start-Sleep -Seconds 2
     Write-Host "Existing service removed."
 }
+Write-Host "Stopping the UI app if running..."
+taskkill /IM EarnedScreen.App.exe /F 2>$null | Out-Null
 
-# --- Step 2: Build ---
-Write-Host "Building $name (Release)..."
+# --- Step 2: Build service + UI app (Release) ---
+Write-Host "Building service (Release)..."
 dotnet build $proj -c Release --nologo -v q
-if (-not (Test-Path $exe)) { throw "Build output not found: $exe" }
+if (-not (Test-Path $exe)) { throw "Service build output not found: $exe" }
+Write-Host "Building UI app (Release)..."
+dotnet build $appProj -c Release --nologo -v q
+if (-not (Test-Path $appExe)) { throw "App build output not found: $appExe" }
 
 # --- Step 3: Merge canonical domain list into existing settings.json ---
 $canonicalDomains = @(
@@ -63,6 +70,13 @@ New-Service -Name $name -BinaryPathName "`"$exe`"" `
     -StartupType Automatic | Out-Null
 
 Start-Service $name
+
+# --- Step 6: UI app — launch at login (machine-wide) and start it now in the tray ---
+Write-Host "Configuring the UI app to launch at login..."
+$runKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'
+Set-ItemProperty -Path $runKey -Name 'EarnedScreen' -Value "`"$appExe`""
+Start-Process $appExe
+
 Write-Host ""
-Write-Host "Done. '$name' is running. Streaming is blocked."
+Write-Host "Done. '$name' is running and the UI is in your system tray (it'll auto-start at login)."
 Write-Host "Restart Chrome/Edge/Firefox now for the DoH policy to take effect."

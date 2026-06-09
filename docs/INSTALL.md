@@ -20,24 +20,25 @@ git clone https://github.com/upizs/EarnedScreen.git
 cd EarnedScreen
 ```
 
-**3. Install the service:**
+**3. Install everything in one go:**
 ```powershell
 .\scripts\install-service.ps1
 ```
 
-This builds the service in Release mode, registers it as `EarnedScreen`, and starts it.
-Streaming sites are blocked immediately.
+This single script (re-run it to update, too):
+- builds the **service** and the **UI app** in Release,
+- registers + starts the `EarnedScreen` service (streaming blocked immediately, family-safe DNS on),
+- sets browser DoH-off policies,
+- adds the UI app to **launch at login** and starts it in your **system tray** now.
 
-**4. Launch the desktop app** (no admin needed — run this as your normal user):
-```powershell
-dotnet run --project src\EarnedScreen.App
-```
-Or open `EarnedScreen.slnx` in Visual Studio and run `EarnedScreen.App`.
+**4. Use it from the tray:**
+- Double-click the EarnedScreen tray icon (or right-click → Open) to show the gateway.
+- Tick every checklist item honestly, then click **"Earn Screen Time"** — the block lifts for one session.
+- After the timer, the Guillotine re-blocks and the cool-down lock appears on every monitor.
+- The tray app is a thin client (~40–60 MB idle); all enforcement is in the service.
 
-**5. Earn your session:**
-- The gateway checklist appears. Tick every item honestly.
-- Click **"Earn Screen Time"** — the block lifts for one session.
-- After the timer, the Guillotine re-blocks and the cool-down lock appears.
+> Re-running `install-service.ps1` stops the app/service, rebuilds, and restarts everything — it's the
+> one command for both install and update.
 
 ---
 

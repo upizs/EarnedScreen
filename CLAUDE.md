@@ -76,10 +76,13 @@ Two cooperating parts, one shared library:
 - **`EarnedScreen.Service`** — a Windows Service (runs as **SYSTEM**, so no UAC prompts). It is the
   *only* writer of the hosts file and the source of truth. Owns the session timer / Guillotine and
   exposes two named pipes. See `EnforcementEngine`, `CommandPipeServer`, `EventPipeServer`, `Worker`.
-- **`EarnedScreen.App`** — WPF client (runs as the normal user, no elevation). Shows the gateway
-  checklist, requests unlock over the Command pipe, and listens on the Events pipe to pop the
-  full-screen cool-down lock when the Guillotine drops. See `ServiceClient`, `MainWindow`,
-  `CoolDownWindow`.
+- **`EarnedScreen.App`** — WPF **system-tray** client (runs as the normal user, no elevation, single
+  instance via a mutex). `App` starts hidden to the tray; `TrayController` owns the tray icon and the
+  long-lived Events-pipe listener, so the cool-down lock fires even with no window open. The gateway
+  window is shown on demand from the tray. Requests unlock over the Command pipe. See `TrayController`,
+  `ServiceClient`, `MainWindow`, `CoolDownWindow`. Idle cost is small (~40–60 MB, ~0% CPU; the status
+  poll only runs while the gateway is open). Launches at login via an HKLM `Run` key set by the
+  install script.
 
 Why a service (not Task Scheduler): it can't be casually killed, survives reboots, runs as SYSTEM so
 hosts edits never prompt, and a service can't draw UI — so the user-session app owns all windows and
