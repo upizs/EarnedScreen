@@ -11,6 +11,7 @@ public sealed class EnforcementEngine
 {
     private readonly object _lock = new();
     private readonly HostsFileManager _hosts = new();
+    private readonly BrowserPolicyManager _browser = new();
     private readonly SettingsStore _settingsStore = new();
     private readonly StateStore _stateStore = new();
     private readonly ILogger<EnforcementEngine> _log;
@@ -35,6 +36,12 @@ public sealed class EnforcementEngine
         {
             _settings = _settingsStore.Load();
             _state = _stateStore.Load();
+
+            // DoH bypass is disabled once on startup and stays off for the service lifetime.
+            // Browsers with DoH enabled send encrypted DNS queries directly to remote resolvers,
+            // completely bypassing the OS hosts file and making block ineffective.
+            _browser.DisableDoH();
+            _log.LogInformation("Browser DoH disabled via policy registry.");
 
             var now = DateTime.UtcNow;
             if (_state.Status == BlockStatus.Unlocked && _state.SessionEndUtc is { } end && end > now)

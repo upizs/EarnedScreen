@@ -28,12 +28,12 @@ public sealed class Settings
         BlockedDomains = new()
         {
             "netflix.com", "www.netflix.com",
-            "youtube.com", "www.youtube.com", "m.youtube.com",
+            "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "youtube-nocookie.com",
             "hulu.com", "www.hulu.com",
             "disneyplus.com", "www.disneyplus.com",
             "twitch.tv", "www.twitch.tv",
             "primevideo.com", "www.primevideo.com",
-            "max.com", "www.max.com",
+            "max.com", "www.max.com", "hbomax.com", "www.hbomax.com",
         },
         GatewayChecklist = new()
         {

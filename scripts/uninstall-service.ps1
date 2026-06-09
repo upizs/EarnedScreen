@@ -30,3 +30,13 @@ if (Test-Path $hosts) {
     ipconfig /flushdns | Out-Null
     Write-Host "Hosts file cleaned and DNS flushed. Streaming restored."
 }
+
+# Remove browser DoH policy keys written by install-service.ps1 / EnforcementEngine.
+Write-Host "Restoring browser DoH policies..."
+$chromePath = 'HKLM:\SOFTWARE\Policies\Google\Chrome'
+$edgePath   = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge'
+$ffPath     = 'HKLM:\SOFTWARE\Policies\Mozilla\Firefox\DNSOverHTTPS'
+if (Test-Path $chromePath) { Remove-ItemProperty $chromePath -Name DnsOverHttpsMode -ErrorAction SilentlyContinue }
+if (Test-Path $edgePath)   { Remove-ItemProperty $edgePath   -Name DnsOverHttpsMode -ErrorAction SilentlyContinue }
+if (Test-Path $ffPath)     { Remove-ItemProperty $ffPath     -Name Enabled           -ErrorAction SilentlyContinue }
+Write-Host "Done. Restart browsers for DoH settings to take effect."
